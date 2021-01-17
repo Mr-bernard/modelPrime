@@ -259,5 +259,47 @@ module.exports = {
       req.flash({message:"You are logged out"});
       res.redirect("/");
     },
+
+    update_password: async(req, res) => {
+      let name = req.user.fullName
+      let email = req.user.email
+      let phone = req.user.phone
+      let pageTitle = "Password update";
+      res.render("admin/update-password", {pageTitle, name, email, phone});
+    },
+    update_passwordPost: async(req, res) => {
+      const { password, CPassword } = req.body;
+      console.log("::::::::::::", req.body);
+      const messages = [];
+
+      // Purifying data
+      if (password === CPassword) {
+        console.log("Validation Passed");
+        messages.push("Validation passed");
+      } else {
+        req.flash("error_msg", "Password Mismatch");
+        res.redirect("/admin/update-password");
+      }
+
+      // checking password lenght
+      if (passport.length >= 5) {
+        console.log("passed");
+        // messages.push("")
+      } else {
+        res.redirect("back")
+      }
+      const _id = req.user.id;
+      await Admin.findByIdAndUpdate({_id}, password)
+      .then(async(update) => {
+        await bcrypt.genSalt(10, (err, salt) => 
+        
+        bcrypt.hash(password, salt, (err, hash) => {
+          update.passport = hash;
+          update.save();
+          req.flash("success_msg", "Password Updated Successfully");
+          res.redirect("/admin");
+        }))
+      })
+    }
       
 }
